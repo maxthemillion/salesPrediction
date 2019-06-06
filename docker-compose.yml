@@ -1,0 +1,15 @@
+version: "3.2"
+services:
+  sample_env:
+    image: myimage
+    build: .
+    ports:
+      - 5000:5000
+    volumes:
+      - type: bind
+        source: .
+        target: /opt/app
+    command: tail -f /dev/null
+
+
+

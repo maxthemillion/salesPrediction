@@ -1,0 +1,18 @@
+name: env
+channels:
+  - anaconda
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.6
+  - pandas
+  - numpy
+  - jupyter
+  - seaborn
+  - matplotlib
+  - scikit-learn
+  - pip=18
+  - pip:
+    - tensorflow
+    - keras
+  
