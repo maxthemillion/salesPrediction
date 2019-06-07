@@ -1,4 +1,4 @@
-from sample_package.sample_submodule import sample
+from salesprediction.model import lstm
 
 if __name__ == '__main__':
-    sample.helloWorld()
+    lstm.run()
