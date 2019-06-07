@@ -41,6 +41,9 @@ LENGTH = MAX_SHOP + MAX_ITEM + MAX_MONTH + 1 + 1 + 1
 MAXLEN = 4 # 4 months
 STEP = 1
 
+CNT_SCALER = StandardScaler()
+CNT_SCALER.fit(TRAIN.item_cnt_day.as_matrix().reshape(-1, 1))
+
 def run():
     (x_train_o, x_val_o, x_test_o, y_train, y_val) = _loadData()
 
@@ -110,6 +113,7 @@ def _oneHotEncoding():
     #cat_dm = dict(zip(item_cats.item_category_id.unique(), cat_le.transform(item_cats.item_category_id.unique())))
     return (shop_dm, item_dm, month_dm)
 
+
 def _buildModel():
     # build the model: a single LSTM
     print('Build model...')
@@ -137,40 +141,16 @@ def _predict(model, x_train, x_val):
 
 
 def _evaluate(y, y_hat):
-    y_hat_inverse = cnt_scaler.inverse_transform(predict_train)
-    y_inverse = cnt_scaler.inverse_transform(y_train)
+    y_hat_inverse = CNT_SCALER.inverse_transform(y_hat)
+    y_inverse = CNT_SCALER.inverse_transform(y)
     score = math.sqrt(mean_squared_error(y_hat_inverse, y_inverse))
     print('Score: %.2f RMSE' % (score))
     return score
 
 
-def _evaluate(predict_train, y_train, predict_val, y_val):    
-    scaler = StandardScaler()
-    cnt_scaler = StandardScaler()
-
-    scaler.fit(TRAIN.item_price.as_matrix().reshape(-1, 1))
-    cnt_scaler.fit(TRAIN.item_cnt_day.as_matrix().reshape(-1, 1))
-
-    #invert predictions
-    predict_train = cnt_scaler.inverse_transform(predict_train)
-    y_train = cnt_scaler.inverse_transform(y_train)
-    predict_val = cnt_scaler.inverse_transform(predict_val)
-    y_val = cnt_scaler.inverse_transform(y_val)
-    
-    # calculate root mean squared error
-    trainScore = math.sqrt(mean_squared_error(predict_train, y_train))
-    print('Train Score: %.2f RMSE' % (trainScore))
-
-    valScore = math.sqrt(mean_squared_error(predict_val, y_val))
-    print('Test Score: %.2f RMSE' % (valScore))
-
-    # TODO: Why is there no test score?
-    return (trainScore, valScore)
-
-
 def _submit(model, x_test, x_test_o):
     predict_test = model.predict(x_test)
-    predict_test = cnt_scaler.inverse_transform(predict_test)
+    predict_test = CNT_SCALER.inverse_transform(predict_test)
 
     test = TEST.set_index(['shop_id', 'item_id'])
     test['item_cnt_month'] = 0
