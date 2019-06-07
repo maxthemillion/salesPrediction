@@ -8,6 +8,7 @@ This project contains a notebook to predict sales data. You have two options to 
 ## Alternative option: run in docker container
 Start docker and run the following commands:
 
-docker-compose up -d --build
-docker exec -it >>containerid<< /bin/bash
+> docker-compose up -d --build
+
+> docker exec -it >>containerid<< /bin/bash
 
