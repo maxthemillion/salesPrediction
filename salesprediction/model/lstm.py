@@ -1,3 +1,9 @@
+from numpy.random import seed
+seed(42)
+from tensorflow import set_random_seed
+set_random_seed(42)
+
+ 
 from ..config import config
 from sklearn import preprocessing
 
@@ -17,6 +23,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation
 from keras.layers import LSTM
 from keras.optimizers import RMSprop
+from keras.models import load_model
 
 import pickle
 import os
@@ -34,7 +41,7 @@ MAX_BLOCK_NUM = TRAIN.date_block_num.max()
 MAX_ITEM = len(TEST_ITEMS)
 MAX_CAT = len(ITEM_CATS)
 MAX_YEAR = 3
-MAX_MONTH = 2 # 7 8 9 10
+MAX_MONTH = 2 # 4 7 8 9 10
 MAX_SHOP = len(TEST_SHOPS)
 
 LENGTH = MAX_SHOP + MAX_ITEM + MAX_MONTH + 1 + 1 + 1
@@ -59,6 +66,10 @@ def run():
 
     train_score = _evaluate(y_train, predict_train)
     val_score = _evaluate(y_val, predict_val)
+
+    _save(model, val_score)
+
+    _submit(model, x_test, x_test_o, val_score)
 
     return True
 
@@ -92,6 +103,8 @@ def _vectorize(inp, shop_dm, item_dm, month_dm):
             x[i][t][ MAX_SHOP + MAX_ITEM + month_dm[char['month']] ] = 1
             x[i][t][ MAX_SHOP + MAX_ITEM + MAX_MONTH + 1 ] = char['item_price']
             x[i][t][ MAX_SHOP + MAX_ITEM + MAX_MONTH + 1 + 1] = char['item_cnt_day']    
+
+    print('\n')
     return x
 
 
@@ -115,40 +128,79 @@ def _oneHotEncoding():
 
 
 def _buildModel():
-    # build the model: a single LSTM
-    print('Build model...')
-    model = Sequential()
-    model.add(LSTM(32, input_shape=(MAXLEN, LENGTH)))
-    model.add(Dense(1, activation='relu'))
+    modelName = config.getModelPath()
 
-    optimizer = RMSprop(lr=0.005)
-    model.compile(loss='mean_squared_error', optimizer=optimizer)
+    if modelName == '':
+        # build the model: a single LSTM
+        print('Building model...')
+        model = Sequential()
+        model.add(LSTM(32, input_shape=(MAXLEN, LENGTH)))
+        model.add(Dense(1, activation='relu'))
+
+        optimizer = RMSprop(lr=0.005)
+        model.compile(loss='mean_squared_error', optimizer=optimizer)
+
+    else:
+        model = load_model(modelName)
+
+    print('\n')
     return model
 
 
 def _fit(model, x_train, y_train):
     batch_size = 128
-    epochs = 13
+    epochs = 1
+
+    print('Fitting model...')
     model.fit(x_train, y_train, batch_size, epochs)
+
+    print('\n')
     return model
+
+
+def _save(model, val_score):
+    print('Saving model ...')
+
+    timestr = time.strftime("%Y%m%d-%H%M")
+    model.save(os.path.join(config.MODELS_PATH, (str(round(val_score,2)) + 'RMSE_' + timestr +'_model.h5')))
+
+    print('Sucessfully saved model to folder.')
+    print('\n')
 
 
 def _predict(model, x_train, x_val):
     #make predictions on train and validation set
+    print('Start predicting...')
+    start = time.time()
+
     predict_train = model.predict(x_train)
     predict_val = model.predict(x_val)
+
+    duration = time.time() - start
+    print('Prediction took ' + str(round(duration, 2)))
+
+    print('\n')
     return (predict_train, predict_val)
 
 
 def _evaluate(y, y_hat):
+    print('Start evaluating...')
+    start = time.time()
+
     y_hat_inverse = CNT_SCALER.inverse_transform(y_hat)
     y_inverse = CNT_SCALER.inverse_transform(y)
     score = math.sqrt(mean_squared_error(y_hat_inverse, y_inverse))
     print('Score: %.2f RMSE' % (score))
+
+    duration = time.time() - start
+    print('Evaluating took ' + str(round(duration, 2)))
+    print('\n')
     return score
 
 
-def _submit(model, x_test, x_test_o):
+def _submit(model, x_test, x_test_o, val_score):
+    print('Predicting on the test set...')
+
     predict_test = model.predict(x_test)
     predict_test = CNT_SCALER.inverse_transform(predict_test)
 
@@ -161,5 +213,8 @@ def _submit(model, x_test, x_test_o):
 
     test = test.reset_index().drop(['shop_id', 'item_id'], axis=1)
 
-    timestr = time.strftime("%Y%m%d-%H%M%S")
-    test.to_csv(os.path.join(config.EXPORT_PATH, (timestr+'_submission.csv')), index=False)
+    timestr = time.strftime("%Y%m%d-%H%M")
+    test.to_csv(os.path.join(config.SUBMISSIONS_PATH, (str(round(val_score,2))+'RMSE_' + timestr +'_submission.csv')), index=False)
+
+    print('Successfully saved predictions to folder. Happy submitting!')
+    print('\n')
