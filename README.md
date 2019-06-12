@@ -15,9 +15,9 @@ Start docker and run the following commands:
 > docker exec -it >>containerid<< /bin/bash
 
 ## How to submit a solution to kaggle
-Please install the kaggle API (https://github.com/Kaggle/kaggle-api). To use it, you have to create a kaggle account, generate a personal access token and put it into the directory specified in the documentation on github.
+Please install the kaggle API (https://github.com/Kaggle/kaggle-api). It is included in the environment.yml as well. To use it, you have to create a kaggle account, generate a personal access token and put it into the directory specified in the documentation on github. 
 
 Then, use the following command to submit your solution:
 > kaggle competitions submit -f [filename] -m [submission message] competitive-data-science-predict-future-sales
 
-Kaggle will then evaluate your submissison.
+Kaggle will then evaluate your submission.
