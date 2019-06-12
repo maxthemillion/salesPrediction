@@ -13,7 +13,7 @@ CSV_ENCODING = 'latin-1'
 
 # load model weights?
 _LOAD_MODEL = True
-_MODEL_NAME = '0.63RMSE_20190611-1728_model.h5'
+_MODEL_NAME = '0.55RMSE_20190611-1736_model.h5'
 
 def getModelPath():
     if _LOAD_MODEL:

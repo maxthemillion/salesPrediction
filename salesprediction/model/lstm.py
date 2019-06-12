@@ -51,6 +51,9 @@ STEP = 1
 CNT_SCALER = StandardScaler()
 CNT_SCALER.fit(TRAIN.item_cnt_day.as_matrix().reshape(-1, 1))
 
+BATCH_SIZE = 128
+EPOCHS = 10
+
 def run():
     (x_train_o, x_val_o, x_test_o, y_train, y_val) = _loadData()
 
@@ -148,11 +151,8 @@ def _buildModel():
 
 
 def _fit(model, x_train, y_train):
-    batch_size = 128
-    epochs = 1
-
     print('Fitting model...')
-    model.fit(x_train, y_train, batch_size, epochs)
+    model.fit(x_train, y_train, BATCH_SIZE, EPOCHS)
 
     print('\n')
     return model

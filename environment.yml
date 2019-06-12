@@ -12,6 +12,7 @@ dependencies:
   - matplotlib
   - scikit-learn
   - pip=18
+  - kaggle
   - pip:
     - tensorflow
     - keras
