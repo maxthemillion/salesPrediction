@@ -5,14 +5,15 @@ This project contains a code to predict sales data.
 The jupyter notebook containes data preparation. The prepared data has been saved as pickled files so that it doesn't have to be executed multiple times. The pickled data is contained in the repository as well, so if you do not change the data preparation, please only refer to the salesprediction module.
 
 To execute the prediction itself, you need to:
-1. install the python environment on your local computer
-2. activate the environment and run main.py
+1. install miniconda (or anaconda) on your local computer (https://docs.conda.io/en/latest/miniconda.html)
+2. install the python environment on your local computer
+3. activate the environment and run main.py
 
 You may either install the environment locally or host it in a docker container (and deploy it to the cloud.)
 
 ### Preferred option: Locally
 1. Execute setup.bat to install the required python environment.
-2. Execute start_jupyter.bat to run the notebook in your browser.
+2. If you'd like to modify the data preparation, execute start_jupyter.bat to run the notebook in your browser.
 3. open the command line, activate the salesPrediciton environment and execute main.py
 
 ### Alternative option: run in docker container
