@@ -3,7 +3,7 @@ import os
 # path names
 _dirname = os.path.dirname(__file__)
 ROOT_PATH = os.path.join(_dirname, '../..')
-DATA_PATH = os.path.join(ROOT_PATH, './data/')
+DATA_PATH = os.path.join(ROOT_PATH, './databroken/')
 SUBMISSIONS_PATH = os.path.join(ROOT_PATH, './submissions/')
 MODELS_PATH = os.path.join(ROOT_PATH, './models/')
 
