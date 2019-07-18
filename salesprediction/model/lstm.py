@@ -40,9 +40,11 @@ TRAIN = TRAIN[TRAIN.item_id.isin(TEST_ITEMS)]
 MAX_BLOCK_NUM = TRAIN.date_block_num.max()
 MAX_ITEM = len(TEST_ITEMS)
 MAX_CAT = len(ITEM_CATS)
-MAX_YEAR = 3
-MAX_MONTH = 2 # 4 7 8 9 10
+MAX_YEAR = 3 #2013 2014 2015
+MAX_MONTH = 2 # 4 7 8 9 10, weil shape(4,5147)
 MAX_SHOP = len(TEST_SHOPS)
+
+
 
 LENGTH = MAX_SHOP + MAX_ITEM + MAX_MONTH + 1 + 1 + 1
 MAXLEN = 4 # 4 months
@@ -51,8 +53,8 @@ STEP = 1
 CNT_SCALER = StandardScaler()
 CNT_SCALER.fit(TRAIN.item_cnt_day.as_matrix().reshape(-1, 1))
 
-BATCH_SIZE = 128
-EPOCHS = 10
+BATCH_SIZE = 256
+EPOCHS = 13
 
 def run():
     (x_train_o, x_val_o, x_test_o, y_train, y_val) = _loadData()
@@ -105,7 +107,8 @@ def _vectorize(inp, shop_dm, item_dm, month_dm):
             x[i][t][ MAX_SHOP + item_dm[char['item_id']] ] = 1
             x[i][t][ MAX_SHOP + MAX_ITEM + month_dm[char['month']] ] = 1
             x[i][t][ MAX_SHOP + MAX_ITEM + MAX_MONTH + 1 ] = char['item_price']
-            x[i][t][ MAX_SHOP + MAX_ITEM + MAX_MONTH + 1 + 1] = char['item_cnt_day']    
+            x[i][t][ MAX_SHOP + MAX_ITEM + MAX_MONTH + 1 + 1] = char['item_cnt_day']   
+
 
     print('\n')
     return x
@@ -114,19 +117,21 @@ def _vectorize(inp, shop_dm, item_dm, month_dm):
 def _oneHotEncoding():
     shop_le = preprocessing.LabelEncoder()
     shop_le.fit(TEST_SHOPS)
-    shop_dm = dict(zip(TEST_SHOPS, shop_le.transform(TEST_SHOPS)))
+    shop_dm = dict(zip(TEST_SHOPS, shop_le.transform(TEST_SHOPS))) #shop_dm bekommt die Listen TEST_SHOPS, shop_le.transform(TEST_SHOPS
 
     item_le = preprocessing.LabelEncoder()
     item_le.fit(TEST_ITEMS)
-    item_dm = dict(zip(TEST_ITEMS, item_le.transform(TEST_ITEMS)))
+    item_dm = dict(zip(TEST_ITEMS, item_le.transform(TEST_ITEMS))) #item_dm bekommt die Listen TEST_ITEMS, item_le.transform(TEST_ITEMS)
 
     month_le = preprocessing.LabelEncoder()
-    month_le.fit(range(7,11))
+    month_le.fit(range(7,11)) #Monat Juli bis Oktober
+
     month_dm = dict(zip(range(7,11), month_le.transform(range(7,11))))
 
     #cat_le = preprocessing.LabelEncoder()
     #cat_le.fit(item_cats.item_category_id)
     #cat_dm = dict(zip(item_cats.item_category_id.unique(), cat_le.transform(item_cats.item_category_id.unique())))
+    # das ist kein OneHotEncoding, sondern die Informationen aus aus der Liste wird zu einem Diktionararray umgewandelt
     return (shop_dm, item_dm, month_dm)
 
 
@@ -137,11 +142,10 @@ def _buildModel():
         # build the model: a single LSTM
         print('Building model...')
         model = Sequential()
-        model.add(LSTM(32, input_shape=(MAXLEN, LENGTH)))
+        model.add(LSTM(32, input_shape=(MAXLEN, LENGTH)))        
         model.add(Dense(1, activation='relu'))
 
-        optimizer = RMSprop(lr=0.005)
-        model.compile(loss='mean_squared_error', optimizer=optimizer)
+        model.compile(loss='mean_squared_error', optimizer=RMSprop(lr=0.0025, rho=0.9, epsilon=None, decay=0.0))
 
     else:
         model = load_model(modelName)
@@ -178,6 +182,7 @@ def _predict(model, x_train, x_val):
 
     duration = time.time() - start
     print('Prediction took ' + str(round(duration, 2)))
+   
 
     print('\n')
     return (predict_train, predict_val)
