@@ -1,3 +1,8 @@
+#MSG Systems AG
+#Alex Yang 
+#20.08.2019
+
+
 from numpy.random import seed
 seed(42)
 from tensorflow import set_random_seed
@@ -41,6 +46,7 @@ from dateutil.relativedelta import relativedelta
 TEST = pd.read_csv(os.path.join(config.DATA_PATH, './test.csv'))
 TRAIN = pd.read_csv(os.path.join(config.DATA_PATH, './sales_train_v2.csv'))
 ITEM_CATS = pd.read_csv(os.path.join(config.DATA_PATH,'./item_categories.csv'))
+
 
 TEST_SHOPS = TEST.shop_id.unique()
 TRAIN = TRAIN[TRAIN.shop_id.isin(TEST_SHOPS)]
@@ -274,16 +280,7 @@ def _AddValues(MY,BS,E,ST,SR,RZ):
 
 #create the time list from august to october
 def _zeitspanne():
-
-    startDate = '01-08'
-    endDate = '01-12'
-    datum_list = []
-    cur_date = start = datetime.strptime(startDate, '%d-%m').date()
-    end = datetime.strptime(endDate, '%d-%m').date()
-    step = relativedelta(months=1)
-    while cur_date < end:
-        datum_list.append(cur_date)
-        cur_date = cur_date + step     
+    datum_list = ['Aug.','Sep.','Okt.','Nov']
     return datum_list
 
 #create the time list from jan 2013 to nov 2015
@@ -302,7 +299,7 @@ def _zeitaxis():
 
 #create the list of the Sales of 2013 from august to nov
 def _verkaufszahlen_2013():
-    df = pd.read_csv('C:/Users/yanga/Desktop/challenge/salesPrediction/data/sales_train_v2.csv',delimiter = ',')
+    df = pd.read_csv(os.path.join(config.DATA_PATH, './sales_train_v2.csv'))
     df['date']=pd.to_datetime(df['date'] ,errors = 'coerce', format = '%d.%m.%Y').dt.strftime("%m-%Y")
     VKZ_08_2013 = df[df['date']== '08-2013']
     VKZ_08_2013_sum = VKZ_08_2013['item_cnt_day'].sum()
@@ -316,7 +313,7 @@ def _verkaufszahlen_2013():
 
 #create the list of the Sales of 2014 from august to nov
 def _verkaufszahlen_2014():
-    df = pd.read_csv('C:/Users/yanga/Desktop/challenge/salesPrediction/data/sales_train_v2.csv',delimiter = ',')
+    df = pd.read_csv(os.path.join(config.DATA_PATH, './sales_train_v2.csv'))
     df['date']=pd.to_datetime(df['date'] ,errors = 'coerce', format = '%d.%m.%Y').dt.strftime("%m-%Y")
     VKZ_08_2014 = df[df['date']== '08-2014']
     VKZ_08_2014_sum = VKZ_08_2014['item_cnt_day'].sum()
@@ -329,7 +326,7 @@ def _verkaufszahlen_2014():
     return [VKZ_08_2014_sum,VKZ_09_2014_sum,VKZ_10_2014_sum,VKZ_11_2014_sum]
 #create the list of the Sales of 2015 from august to nov
 def _verkaufszahlen_2015():
-    df = pd.read_csv('C:/Users/yanga/Desktop/challenge/salesPrediction/data/sales_train_v2.csv',delimiter = ',')
+    df = pd.read_csv(os.path.join(config.DATA_PATH, './sales_train_v2.csv'))
     df['date']=pd.to_datetime(df['date'] ,errors = 'coerce', format = '%d.%m.%Y').dt.strftime("%m-%Y")
     VKZ_08_2015 = df[df['date']== '08-2015']
     VKZ_08_2015_sum = VKZ_08_2015['item_cnt_day'].sum()
@@ -351,7 +348,7 @@ def _graphischeVisualisierung(x,y,y_2014,y_2013,y1):
     yaxis=go.layout.YAxis(title=go.layout.yaxis.Title(text="Anzahl der verkauften Waren pro Monat",font=dict(family="Courier New, monospace",size=18,color="#7f7f7f"))))
     fig.show()
     #export the graph
-    #fig.write_image("fig1.png")
+    fig.write_image("fig1.png")
 
 #create the visualization from jan 2013 to okc 2015
 def _graphischeVisualisierung_gesamt(x,y,y1):
@@ -364,11 +361,11 @@ def _graphischeVisualisierung_gesamt(x,y,y1):
     yaxis=go.layout.YAxis(title=go.layout.yaxis.Title(text="Anzahl der verkauften Waren pro Monat",font=dict(family="Courier New, monospace",size=18,color="#7f7f7f"))))
     fig.show()
     #export the graph
-    #fig.write_image("fig2.png")
+    fig.write_image("fig2.png")
 
 #create the list of sell good from jan 2013 to okc 2015
 def _Y_werteberechen():
-    df = pd.read_csv('C:/Users/yanga/Desktop/challenge/salesPrediction/data/sales_train_v2.csv',delimiter = ',')
+    df = pd.read_csv(os.path.join(config.DATA_PATH, './sales_train_v2.csv'))
     df1 = df.sort_values('date')
     df1['date'] = pd.to_datetime(df1['date'] ,errors = 'coerce', format = '%d.%m.%Y').dt.strftime("%Y-%m")
     df2 = df1.groupby(['date']).sum().sort_values('date',ascending=True)
@@ -381,6 +378,9 @@ def _Vorhersage_112015():
     y1.append(df3['item_cnt_month'].sum())
     return y1
         
+
+
+
 
 
 
