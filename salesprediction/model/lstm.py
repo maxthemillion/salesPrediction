@@ -56,7 +56,7 @@ TRAIN = TRAIN[TRAIN.item_id.isin(TEST_ITEMS)]
 MAX_BLOCK_NUM = TRAIN.date_block_num.max()
 MAX_ITEM = len(TEST_ITEMS)
 MAX_CAT = len(ITEM_CATS)
-MAX_YEAR = 1 #2013 2014 2015
+MAX_YEAR = 3 #2013 2014 2015
 MAX_MONTH = 2 # 4 7 8 9 10, weil shape(4,5147)
 MAX_SHOP = len(TEST_SHOPS)
 
@@ -68,7 +68,7 @@ STEP = 1
 CNT_SCALER = StandardScaler()
 CNT_SCALER.fit(TRAIN.item_cnt_day.as_matrix().reshape(-1, 1))
 
-BATCH_SIZE = 256
+BATCH_SIZE = 128
 EPOCHS = 10
 
 
@@ -254,6 +254,8 @@ def _submit(model, x_test, x_test_o, val_score):
 
 # create the csv table 
 def _CreateTable(a,b,c,d,e,f):
+    print('create table')
+    index = [1]
     MY =[]
     BS= []
     E = []
@@ -266,26 +268,31 @@ def _CreateTable(a,b,c,d,e,f):
     ST.append(d)
     SR.append(e)
     RZ.append(f)
-    dict = {'MAX_Year': MY,'Batch_Size': BS,'Epochs': E,'Score(TraningSet)': ST,'Score(RealSet)': SR,'Rechenzeit':RZ}  
+    dict = {'index': index,'MAX_Year': MY,'Batch_Size': BS,'Epochs': E,'Score(TraningSet)': ST,'Score(RealSet)': SR,'Rechenzeit':RZ}  
     df = pd.DataFrame(dict) 
     df.to_csv('SaveValue.csv',index = False )  
 
 # add new Value into the existing csv.table
 def _AddValues(MY,BS,E,ST,SR,RZ):
-    A = [MY,BS,E,ST,SR,RZ]
-    df = pd.DataFrame(columns =  ['MAX_Year','Batch_Size','Epochs','Score(TraningSet)','Score(RealSet)','Rechenzeit'])
+    print('add new value in the table')
+    df = pd.read_csv('C:/Users/yanga/Desktop/challenge/SaveValue.csv')  
+    index_value = df['index']
+    new_index = int(index_value[-1:]) + 1
+    A = [new_index,MY,BS,E,ST,SR,RZ]
+    df = pd.DataFrame(columns =  ['index','MAX_Year','Batch_Size','Epochs','Score(TraningSet)','Score(RealSet)','Rechenzeit'])
     df = pd.DataFrame(np.array([A]),
-    columns=['MAX_Year','Batch_Size','Epochs','Score(TraningSet)','Score(RealSet)','Rechenzeit']).append(df, ignore_index=False)
+    columns=['index','MAX_Year','Batch_Size','Epochs','Score(TraningSet)','Score(RealSet)','Rechenzeit']).append(df, ignore_index=False)
     df.to_csv('SaveValue.csv', mode='a', header=False,index = False)
 
 #create the time list from august to october
 def _zeitspanne():
+    print('create list of mouth')
     datum_list = ['Aug.','Sep.','Okt.','Nov']
     return datum_list
 
 #create the time list from jan 2013 to nov 2015
 def _zeitaxis():
-    
+    print('create time list from 01-2013 to 12-2015')
     startDate = '01-2013'
     endDate = '12-2015'
     datum_list = []
@@ -299,6 +306,7 @@ def _zeitaxis():
 
 #create the list of the Sales of 2013 from august to nov
 def _verkaufszahlen_2013():
+    print('count the sales of the year 2013')
     df = pd.read_csv(os.path.join(config.DATA_PATH, './sales_train_v2.csv'))
     df['date']=pd.to_datetime(df['date'] ,errors = 'coerce', format = '%d.%m.%Y').dt.strftime("%m-%Y")
     VKZ_08_2013 = df[df['date']== '08-2013']
@@ -313,6 +321,7 @@ def _verkaufszahlen_2013():
 
 #create the list of the Sales of 2014 from august to nov
 def _verkaufszahlen_2014():
+    print('count the sales of year 2014 ')
     df = pd.read_csv(os.path.join(config.DATA_PATH, './sales_train_v2.csv'))
     df['date']=pd.to_datetime(df['date'] ,errors = 'coerce', format = '%d.%m.%Y').dt.strftime("%m-%Y")
     VKZ_08_2014 = df[df['date']== '08-2014']
@@ -326,6 +335,7 @@ def _verkaufszahlen_2014():
     return [VKZ_08_2014_sum,VKZ_09_2014_sum,VKZ_10_2014_sum,VKZ_11_2014_sum]
 #create the list of the Sales of 2015 from august to nov
 def _verkaufszahlen_2015():
+    print('count the sales of year 2015')
     df = pd.read_csv(os.path.join(config.DATA_PATH, './sales_train_v2.csv'))
     df['date']=pd.to_datetime(df['date'] ,errors = 'coerce', format = '%d.%m.%Y').dt.strftime("%m-%Y")
     VKZ_08_2015 = df[df['date']== '08-2015']
@@ -338,33 +348,35 @@ def _verkaufszahlen_2015():
 
 #create the visualization from aug to nov
 def _graphischeVisualisierung(x,y,y_2014,y_2013,y1):
+    print('create the grafic 1')
     fig = go.Figure()
     fig.add_trace(go.Scatter(x = x,y = y,name = "real 08-2015->10-2015",line_color = "blue"))
     fig.add_trace(go.Scatter(x=x[-1:], y=y1,mode='markers',name='Vorhersage für Nov 2015'))
     fig.add_trace(go.Scatter(x = x,y = y_2014,name = "real 08-2014->11-2014",line_color = "green"))
     fig.add_trace(go.Scatter(x = x,y = y_2013,name = "real 08-2013->11-2013",line_color = "yellow"))
     fig.update_layout(title_text= "Vorhersage für den 11-2015 (Produkt-Store-Kombinationen)",
-    xaxis=go.layout.XAxis(title=go.layout.xaxis.Title(text="Datum (Aug. bis Okt.)",font=dict(family="Courier New, monospace",size=18,color="#7f7f7f"))),
+    xaxis=go.layout.XAxis(title=go.layout.xaxis.Title(text="Datum (Aug. bis Nov.)",font=dict(family="Courier New, monospace",size=18,color="#7f7f7f"))),
     yaxis=go.layout.YAxis(title=go.layout.yaxis.Title(text="Anzahl der verkauften Waren pro Monat",font=dict(family="Courier New, monospace",size=18,color="#7f7f7f"))))
     fig.show()
     #export the graph
-    fig.write_image("fig1.png")
+    #fig.write_image("fig1.png")
 
 #create the visualization from jan 2013 to okc 2015
 def _graphischeVisualisierung_gesamt(x,y,y1):
-    
+    print('create the grafic 2')
     fig = go.Figure()
     fig.add_trace(go.Scatter(x = x,y = y,mode='lines+markers',line_color = "blue",name="Verkaufszahlen aus der Vergangenheit"))
     fig.add_trace(go.Scatter(x=x[-1:], y=y1,mode='markers',name='Vorhersage für Nov 2015'))
     fig.update_layout(title_text= "Vorhersage für den 11-2015 (Produkt-Store-Kombinationen)",
-    xaxis=go.layout.XAxis(title=go.layout.xaxis.Title(text="Datum (Jan 2013 bis Okt 2015)",font=dict(family="Courier New, monospace",size=18,color="#7f7f7f"))),
+    xaxis=go.layout.XAxis(title=go.layout.xaxis.Title(text="Datum (Jan 2013 bis Nov 2015)",font=dict(family="Courier New, monospace",size=18,color="#7f7f7f"))),
     yaxis=go.layout.YAxis(title=go.layout.yaxis.Title(text="Anzahl der verkauften Waren pro Monat",font=dict(family="Courier New, monospace",size=18,color="#7f7f7f"))))
     fig.show()
     #export the graph
-    fig.write_image("fig2.png")
+    #fig.write_image("fig2.png")
 
 #create the list of sell good from jan 2013 to okc 2015
 def _Y_werteberechen():
+    print('create the sales from jan 2013 to okc 2015')
     df = pd.read_csv(os.path.join(config.DATA_PATH, './sales_train_v2.csv'))
     df1 = df.sort_values('date')
     df1['date'] = pd.to_datetime(df1['date'] ,errors = 'coerce', format = '%d.%m.%Y').dt.strftime("%Y-%m")
@@ -373,6 +385,7 @@ def _Y_werteberechen():
 
 #create the prognosis of nov 2015
 def _Vorhersage_112015():
+    print('create the prognosis of nov 2015')
     df3 = pd.read_csv('C:/Users/yanga/Desktop/challenge/salesPrediction/submissions/0.3RMSE_20190715-1716_submission.csv')
     y1 = []
     y1.append(df3['item_cnt_month'].sum())
